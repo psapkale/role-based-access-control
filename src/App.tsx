@@ -2,21 +2,18 @@ import { Toaster } from "sonner";
 import "./App.css";
 import Dashboard from "./components/dashboard";
 import Layout from "./components/layout";
-import { RecoilRoot } from "recoil";
+import { useRecoilValue } from "recoil";
 import AuthModal from "./components/auth-modal";
-import useUserRole from "./hooks/use-user-role";
+import { loginState } from "./store/atoms/login-state";
 
 function App() {
-  const { isLoggedIn } = useUserRole();
-  console.log(isLoggedIn);
+  const isLoggedIn = useRecoilValue(loginState);
 
   return (
-    <RecoilRoot>
-      <Layout>
-        <Toaster position="top-right" />
-        {isLoggedIn ? <Dashboard /> : <AuthModal />}
-      </Layout>
-    </RecoilRoot>
+    <Layout>
+      <Toaster position="top-right" />
+      {isLoggedIn ? <Dashboard /> : <AuthModal />}
+    </Layout>
   );
 }
 

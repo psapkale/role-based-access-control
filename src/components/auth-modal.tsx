@@ -10,20 +10,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useRecoilValue } from "recoil";
 import { roleState } from "@/store/atoms/role-state";
 import useUserRole from "@/hooks/use-user-role";
+import { toast } from "sonner";
 
 export default function AuthModal() {
   const [isOpen, setIsOpen] = useState(false);
   const roles = useRecoilValue(roleState);
-  //   const [role, setRole] = useState("Admin");
-  const { isLoggedIn, setRoleInLocalStorage } = useUserRole();
+  const { setRoleInLocalStorage } = useUserRole();
 
   const handleLogin = (role: string) => {
     setRoleInLocalStorage(role);
     setIsOpen(false);
+    toast.success(`Login in as ${role}`);
   };
 
   return (

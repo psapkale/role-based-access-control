@@ -1,17 +1,15 @@
+import { loginState } from "@/store/atoms/login-state";
 import { useState, useEffect } from "react";
+import { useSetRecoilState } from "recoil";
 
 const useUserRole = () => {
-  const [role, setRole] = useState(localStorage.getItem("role"));
-  const [isLoggedIn, setIsLoggedIn] = useState(!!role);
+  const [role, setRole] = useState(() => localStorage.getItem("role"));
+  const setIsLoggedIn = useSetRecoilState(loginState);
 
   const setRoleInLocalStorage = (newRole: string) => {
-    if (["Admin", "Manager", "User"].includes(newRole)) {
-      localStorage.setItem("role", newRole);
-      setRole(newRole);
-      setIsLoggedIn(true);
-    } else {
-      console.error("Invalid role");
-    }
+    localStorage.setItem("role", newRole);
+    setRole(newRole);
+    setIsLoggedIn(true);
   };
 
   const clearRoleFromLocalStorage = () => {
@@ -25,16 +23,21 @@ const useUserRole = () => {
   };
 
   useEffect(() => {
-    console.log("isLoggedIn status:", isLoggedIn);
-  }, [isLoggedIn]);
+    const onStorageChange = () => {
+      const storedRole = localStorage.getItem("role");
+      setRole(storedRole);
+      setIsLoggedIn(!!storedRole);
+    };
 
-  useEffect(() => {
-    setIsLoggedIn(!!role);
-  }, [role]);
+    window.addEventListener("storage", onStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", onStorageChange);
+    };
+  }, []);
 
   return {
     role,
-    isLoggedIn,
     setRoleInLocalStorage,
     clearRoleFromLocalStorage,
     getRoleFromLocalStorage,
