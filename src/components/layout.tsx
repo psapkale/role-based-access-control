@@ -1,6 +1,11 @@
 import React from "react";
+import { Button } from "./ui/button";
+import useUserRole from "@/hooks/use-user-role";
+// import { localMemberData } from "@/lib/use-local-member";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const { clearRoleFromLocalStorage } = useUserRole();
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -10,6 +15,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             Manage users and their access permissions
           </p>
         </div>
+
+        <Button variant={"ghost"} onClick={clearRoleFromLocalStorage}>
+          Logout
+        </Button>
       </div>
 
       {children}

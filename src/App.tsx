@@ -3,29 +3,21 @@ import "./App.css";
 import Dashboard from "./components/dashboard";
 import Layout from "./components/layout";
 import { RecoilRoot } from "recoil";
-import { useLocalStorage } from "./hooks/use-local-storage";
-import { AuthStatus } from "./types";
 import AuthModal from "./components/auth-modal";
+import useUserRole from "./hooks/use-user-role";
 
 function App() {
-   const [userAuth, setUserAuth] = useLocalStorage<AuthStatus>("user", {
-      name: "",
-      email: "",
-      role: "",
-      password: "",
-      isLoggedIn: false,
-   });
+  const { isLoggedIn } = useUserRole();
+  console.log(isLoggedIn);
 
-   console.log(userAuth);
-
-   return (
-      <RecoilRoot>
-         <Layout>
-            <Toaster position="top-right" />
-            {userAuth.isLoggedIn ? <Dashboard /> : <AuthModal />}
-         </Layout>
-      </RecoilRoot>
-   );
+  return (
+    <RecoilRoot>
+      <Layout>
+        <Toaster position="top-right" />
+        {isLoggedIn ? <Dashboard /> : <AuthModal />}
+      </Layout>
+    </RecoilRoot>
+  );
 }
 
 export default App;
