@@ -40,6 +40,7 @@ import {
 import { useRecoilState } from "recoil";
 import { roleState } from "@/store/atoms/role-state";
 import { toast } from "sonner";
+import useUserRole from "@/hooks/use-user-role";
 
 const RoleList = () => {
   const [roles, setRoles] = useRecoilState(roleState);
@@ -48,8 +49,16 @@ const RoleList = () => {
     description: "",
     permissions: [],
   });
+  const role = useUserRole().getRoleFromLocalStorage();
+  const isAdmin = role === "Admin";
+  const isManager = role === "Manager";
 
   const handleAddRole = () => {
+    if (!isAdmin) {
+      toast.warning("Only admin can add a role");
+      return;
+    }
+
     if (
       !newRole.name.length ||
       !newRole.description.length ||
@@ -60,10 +69,15 @@ const RoleList = () => {
     }
     setRoles([...roles, { ...newRole, id: roles.length + 1 }]);
     setNewRole({ name: "", description: "", permissions: [] });
-    toast.success("New sRole Added Successfully");
+    toast.success("New Role Added Successfully");
   };
 
   const handleDeleteRole = (id: number) => {
+    if (!isAdmin) {
+      toast.warning("Only admin can delete a role");
+      return;
+    }
+
     setRoles(roles.filter((role) => role.id !== id));
     toast.success("Role Deleted Successfully");
   };
@@ -73,94 +87,98 @@ const RoleList = () => {
       <CardHeader>
         <CardTitle>Roles</CardTitle>
         <CardDescription>Manage roles and their permissions</CardDescription>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Role
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Role</DialogTitle>
-              <DialogDescription>
-                Create a new role and set its permissions
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="roleName">Role Name</Label>
-                <Input
-                  id="roleName"
-                  value={newRole.name}
-                  onChange={(e) =>
-                    setNewRole({
-                      ...newRole,
-                      name: e.target.value,
-                    })
-                  }
-                  placeholder="Enter role name"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="roleDescription">Description</Label>
-                <Textarea
-                  id="roleDescription"
-                  value={newRole.description}
-                  onChange={(e) =>
-                    setNewRole({
-                      ...newRole,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Enter role description"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Permissions</Label>
-                <div className="flex flex-wrap gap-2">
-                  {["create", "read", "update", "delete"].map((permission) => (
-                    <div
-                      key={permission}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`permission-${permission}`}
-                        checked={newRole.permissions.includes(
-                          permission as never
-                        )}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setNewRole({
-                              ...newRole,
-                              permissions: [
-                                ...newRole.permissions,
-                                permission as never,
-                              ],
-                            });
-                          } else {
-                            setNewRole({
-                              ...newRole,
-                              permissions: newRole.permissions.filter(
-                                (p) => p !== permission
-                              ),
-                            });
-                          }
-                        }}
-                      />
-                      <Label htmlFor={`permission-${permission}`}>
-                        {permission}
-                      </Label>
-                    </div>
-                  ))}
+        {isAdmin && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Role
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Role</DialogTitle>
+                <DialogDescription>
+                  Create a new role and set its permissions
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="roleName">Role Name</Label>
+                  <Input
+                    id="roleName"
+                    value={newRole.name}
+                    onChange={(e) =>
+                      setNewRole({
+                        ...newRole,
+                        name: e.target.value,
+                      })
+                    }
+                    placeholder="Enter role name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="roleDescription">Description</Label>
+                  <Textarea
+                    id="roleDescription"
+                    value={newRole.description}
+                    onChange={(e) =>
+                      setNewRole({
+                        ...newRole,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder="Enter role description"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Permissions</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {["create", "read", "update", "delete"].map(
+                      (permission) => (
+                        <div
+                          key={permission}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`permission-${permission}`}
+                            checked={newRole.permissions.includes(
+                              permission as never
+                            )}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewRole({
+                                  ...newRole,
+                                  permissions: [
+                                    ...newRole.permissions,
+                                    permission as never,
+                                  ],
+                                });
+                              } else {
+                                setNewRole({
+                                  ...newRole,
+                                  permissions: newRole.permissions.filter(
+                                    (p) => p !== permission
+                                  ),
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`permission-${permission}`}>
+                            {permission}
+                          </Label>
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={handleAddRole}>Add Role</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+              <div className="flex justify-end">
+                <Button onClick={handleAddRole}>Add Role</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </CardHeader>
       <CardContent>
         <Table>

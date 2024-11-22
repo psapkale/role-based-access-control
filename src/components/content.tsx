@@ -1,9 +1,14 @@
+import useUserRole from "@/hooks/use-user-role";
 import RoleAccess from "./role-access";
 import RoleList from "./role-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import UserTable from "./user-table";
 
 const UserAndRoleContent = () => {
+  const role = useUserRole().getRoleFromLocalStorage();
+  const isAdmin = role === "Admin";
+  const isManager = role === "Manager";
+
   return (
     <Tabs defaultValue="users" className="space-y-4">
       <TabsList>

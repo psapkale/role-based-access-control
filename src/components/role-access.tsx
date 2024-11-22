@@ -9,9 +9,13 @@ import {
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
 import { roleState } from "@/store/atoms/role-state";
+import useUserRole from "@/hooks/use-user-role";
 
 const RoleAccess = () => {
   const [roles, setRoles] = useRecoilState(roleState);
+  const role = useUserRole().getRoleFromLocalStorage();
+  const isAdmin = role === "Admin";
+  const isManager = role === "Manager";
 
   const handleUpdateRolePermissions = (
     roleName: string,
@@ -45,6 +49,10 @@ const RoleAccess = () => {
                 {["create", "read", "update", "delete"].map((permission) => (
                   <div key={permission} className="flex items-center space-x-2">
                     <Checkbox
+                      disabled={
+                        (!isAdmin && !isManager) ||
+                        (role.name === "Admin" && !isAdmin)
+                      }
                       id={`${role.name}-${permission}`}
                       checked={role.permissions.includes(permission)}
                       onCheckedChange={() =>

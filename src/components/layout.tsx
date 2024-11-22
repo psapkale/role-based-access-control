@@ -1,10 +1,13 @@
 import React from "react";
 import { Button } from "./ui/button";
 import useUserRole from "@/hooks/use-user-role";
-// import { localMemberData } from "@/lib/use-local-member";
+import { Badge } from "./ui/badge";
+import { useRecoilValue } from "recoil";
+import { loginState } from "@/store/atoms/login-state";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { clearRoleFromLocalStorage } = useUserRole();
+  const isLoggedIn = useRecoilValue(loginState);
+  const { getRoleFromLocalStorage, clearRoleFromLocalStorage } = useUserRole();
 
   return (
     <div className="p-6">
@@ -16,9 +19,19 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </p>
         </div>
 
-        <Button variant={"ghost"} onClick={clearRoleFromLocalStorage}>
-          Logout
-        </Button>
+        {isLoggedIn && (
+          <div className="flex gap-4">
+            <span className="flex gap-2 items-center">
+              <span className="text-sm text-muted-foreground">
+                Current session as:
+              </span>
+              <Badge>{getRoleFromLocalStorage()}</Badge>
+            </span>
+            <Button variant={"ghost"} onClick={clearRoleFromLocalStorage}>
+              Logout
+            </Button>
+          </div>
+        )}
       </div>
 
       {children}

@@ -46,10 +46,14 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { roleState } from "@/store/atoms/role-state";
 import { userState } from "@/store/atoms/user-state";
 import { toast } from "sonner";
+import useUserRole from "@/hooks/use-user-role";
 
 const UserTable = () => {
   const [users, setUsers] = useRecoilState(userState);
   const roles = useRecoilValue(roleState);
+  const role = useUserRole().getRoleFromLocalStorage();
+  const isAdmin = role === "Admin";
+  const isManager = role === "Manager";
   const [searchQuery, setSearchQuery] = useState("");
   const [newUser, setNewUser] = useState({
     name: "",
@@ -65,6 +69,11 @@ const UserTable = () => {
   );
 
   const handleAddUser = () => {
+    if (!isAdmin) {
+      toast.warning("Only admin can create a member");
+      return;
+    }
+
     if (
       !newUser.name.length ||
       !newUser.email.length ||
@@ -83,6 +92,11 @@ const UserTable = () => {
   };
 
   const handleChangeRole = (id: number, newRole: string) => {
+    if (!isAdmin) {
+      toast.warning("Only admin can change role");
+      return;
+    }
+
     setUsers(
       users.map((user) => {
         if (user.id === id) {
@@ -95,6 +109,11 @@ const UserTable = () => {
   };
 
   const handleChangeStatus = (id: number) => {
+    if (!isAdmin || !isManager) {
+      toast.warning("Only admin or manager can change status");
+      return;
+    }
+
     setUsers(
       users.map((user) => {
         if (user.id === id) {
@@ -110,6 +129,11 @@ const UserTable = () => {
   };
 
   const handleDeleteUser = (id: number) => {
+    if (!isAdmin) {
+      toast.warning("Only admin can delete a member");
+      return;
+    }
+
     setUsers(users.filter((user) => user.id !== id));
     toast.success("Member Deleted Successfully");
   };
@@ -129,94 +153,97 @@ const UserTable = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add User
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New User</DialogTitle>
-                <DialogDescription>
-                  Create a new user and assign their role
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={newUser.name}
-                    onChange={(e) =>
-                      setNewUser({
-                        ...newUser,
-                        name: e.target.value,
-                      })
-                    }
-                    placeholder="Enter user name"
-                  />
+
+          {isAdmin && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add User
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New User</DialogTitle>
+                  <DialogDescription>
+                    Create a new user and assign their role
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={newUser.name}
+                      onChange={(e) =>
+                        setNewUser({
+                          ...newUser,
+                          name: e.target.value,
+                        })
+                      }
+                      placeholder="Enter user name"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newUser.email}
+                      onChange={(e) =>
+                        setNewUser({
+                          ...newUser,
+                          email: e.target.value,
+                        })
+                      }
+                      placeholder="Enter email"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) =>
+                        setNewUser({
+                          ...newUser,
+                          password: e.target.value,
+                        })
+                      }
+                      placeholder="Enter password"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Select
+                      value={newUser.role}
+                      onValueChange={(value) =>
+                        setNewUser({
+                          ...newUser,
+                          role: value,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {roles.map((role) => (
+                          <SelectItem key={role.id} value={role.name}>
+                            {role.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) =>
-                      setNewUser({
-                        ...newUser,
-                        email: e.target.value,
-                      })
-                    }
-                    placeholder="Enter email"
-                  />
+                <div className="flex justify-end">
+                  <Button onClick={handleAddUser}>Add User</Button>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) =>
-                      setNewUser({
-                        ...newUser,
-                        password: e.target.value,
-                      })
-                    }
-                    placeholder="Enter password"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={newUser.role}
-                    onValueChange={(value) =>
-                      setNewUser({
-                        ...newUser,
-                        role: value,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role.id} value={role.name}>
-                          {role.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button onClick={handleAddUser}>Add User</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -256,36 +283,40 @@ const UserTable = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground w-full">
-                          Change Role
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuLabel>Select Role</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {roles.map((role) => (
-                            <DropdownMenuItem
-                              key={role.id}
-                              onClick={() =>
-                                handleChangeRole(user.id, role.name)
-                              }
-                            >
-                              {role.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {isAdmin && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground w-full">
+                            Change Role
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuLabel>Select Role</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {roles.map((role) => (
+                              <DropdownMenuItem
+                                key={role.id}
+                                onClick={() =>
+                                  handleChangeRole(user.id, role.name)
+                                }
+                              >
+                                {role.name}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                       <DropdownMenuItem
                         onClick={() => handleChangeStatus(user.id)}
                       >
                         Change Status
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-destructive"
-                      >
-                        Delete User
-                      </DropdownMenuItem>
+                      {isAdmin && (
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="text-destructive"
+                        >
+                          Delete User
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
